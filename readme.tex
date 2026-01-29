@@ -6,7 +6,23 @@
     \author{Alison Zerbe}
     \maketitle{}
    \begin{enumerate}
-    \item Q1 
-    \item Q2 
+    \item Structure of the Program \\\\
+    For my Oracle I created two classes, Oracle and Token. \\
+    Tokens are created as each word is read in from the parsed file. They contain the 
+    index, head, word and POS of each token.\\\\
+    The Oracle hold the buffer, stack and transitions. A new Oracle instance is created for each parsed grouping.
+    The Oracle class also contains the logic related to determining if the terminal case has been reached, and all functions
+    required for performing the three transition options of LeftArc, RightArc and Shift \\\\
+    hw4_oracle.py drives the program and reads in the input, creates class instances, manages the recursive function to go through the stack and buffer, 
+    and prints the results to the specified output file.
+
+    \item Issues \\\\
+    This was fairly straightforward. The main issues were realizing that when I shift I have to put back whatever tokens I had popped from the stack.
+    I also found it tricky at first to correlate the head and index relationships between the two tokens and left and right arcs.
+    The final thing that was a little difficult was how to handle the ROOT. I'm still not entirely happy with how I handled it and think an 
+    improvement would be to verify that the last item in the Stack is in fact a ROOT. Also, I defaulted to the ROOT being a RightArc always, but I feel
+    this is very English-centric.
+
+    \item Running the Program \\
    \end{enumerate}
 \end{document}
