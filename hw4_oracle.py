@@ -43,11 +43,13 @@ def print_sequence(o, sequence_output):
     with open(sequence_output, "a") as f:
         for transition in transitions:
             print(transition, file=f)
+        print('', file=f)
 
-def create_transitions(o):
+def create_transitions(o, sequence_output):
     is_terminal_case = o.is_terminal_case()
     if is_terminal_case:
         o.add_transition((TRANSITIONS['rightArc'], 'ROOT'))
+        print_sequence(o, sequence_output)
         return 
     while not is_terminal_case:
         stack = o.get_stack()
@@ -68,12 +70,14 @@ def create_transitions(o):
             is_terminal_case = o.is_terminal_case()
             if is_terminal_case:
                 o.add_transition((TRANSITIONS['rightArc'], 'ROOT'))
+                print_sequence(o, sequence_output)
                 return
             else:
                 o.shift()
                 o.add_transition(transition=TRANSITIONS['shift'])
+    
 
-def create_oracle(parsed_phrase):
+def create_oracle(parsed_phrase, sequence_output):
     o = Oracle()
     tokens = []
     for token in parsed_phrase:
@@ -85,28 +89,25 @@ def create_oracle(parsed_phrase):
     o.add_to_stack(root_token)
     o.set_buffer(tokens)
     o.add_transition(transition=TRANSITIONS['shift'])
-    return o
+    create_transitions(o, sequence_output)
 
-def read_dependency_parses(parse_input):
+def read_dependency_parses(parse_input, sequence_output):
     with open(parse_input, 'r', encoding='utf8') as file:
         lines = file.readlines()
         parsed_phrase = []
         for line in lines:
             if line == "\n":
-                create_oracle(parsed_phrase)
+                create_oracle(parsed_phrase, sequence_output)
                 parsed_phrase = []
             else:
                 parsed_phrase.append(line)
         
-        o = create_oracle(parsed_phrase)
-        return o
+        create_oracle(parsed_phrase, sequence_output)
+      
 
 def main():
     parse_input, dependency_output, sequence_output = get_inputs()
-    o = read_dependency_parses(parse_input)
-    create_transitions(o)
-    print_sequence(o, sequence_output)
-
+    read_dependency_parses(parse_input, sequence_output)
 
 if __name__ == '__main__':
     main()

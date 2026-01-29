@@ -3,3 +3,16 @@
 3	the	det	5
 4	morning	nmod	5
 5	flight	dobj	1
+
+1	They	nsubj	2
+2	told	ROOT	0
+3	him	iobj	2
+4	a	det	5
+5	story	dobj	2
+
+1	The	det	2
+2	cat	nsubj	3
+3	sat	ROOT	0
+4	on	case	6
+5	the	det	6
+6	mat	obj	3
