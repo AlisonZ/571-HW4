@@ -13,12 +13,15 @@ class Oracle:
     def get_stack(self):
         return self.stack
     
+    def get_transitions(self):
+        return self.transitions
+    
     def is_terminal_case(self):
         buffer_len = len(self.buffer)
         stack_len = len(self.stack)
         transition_len = len(self.transitions)
         
-        if buffer_len == 0 and stack_len == 0 and transition_len != 0:
+        if buffer_len == 0 and stack_len == 1 and transition_len != 0:
             return True
         else:
             return False
@@ -32,12 +35,6 @@ class Oracle:
     def shift(self):
         shifted_el = self.buffer.pop(0)
         self.stack.append(shifted_el)
-    
-    def left_arc(self):
-        print(f"LEFT")
-
-    def right_arc(self):
-        print(f"RIGHT")
 
     def view_top_two(self):
         right = self.stack.pop()
