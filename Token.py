@@ -14,6 +14,15 @@ class Token:
     def set_word(self, word):
         self.word = word
     
+    def get_head_index(self):
+        return self.head_index
+    
+    def get_index(self):
+        return self.index
+    
+    def get_pos(self):
+        return self.pos
+    
     def set_pos(self, pos):
         self.pos = pos
         

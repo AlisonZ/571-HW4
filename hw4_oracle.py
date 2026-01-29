@@ -3,6 +3,12 @@ import sys
 import os
 from Oracle import Oracle
 from Token import Token
+TRANSITIONS = {
+    'shift': "SHIFT",
+    'leftArc': "LEFTARC",
+    'rightArc': "RIGHTARC"
+
+}
 
 def get_inputs():
     if len(sys.argv) > 1:
@@ -18,6 +24,47 @@ def get_inputs():
     
     return parse_input, dependency_output, sequence_output
 
+def get_transition(right_token, left_token):
+    r_head = right_token.get_head_index()
+    r_index = left_token.get_index()
+    r_pos = right_token.get_pos()
+    l_head = left_token.get_head_index()
+    l_index = left_token.get_index()
+    l_pos = left_token.get_pos()
+    
+    if r_head == l_index:
+        return (TRANSITIONS['rightArc'], r_pos)
+    elif l_head == r_index:
+        return (TRANSITIONS['leftArc'], l_pos)
+    else: 
+        return (TRANSITIONS['shift'])
+
+
+def create_transitions(o):
+    is_terminal_case = o.is_terminal_case()
+    if is_terminal_case:
+        print("reached end")
+        return 
+    # while not is_terminal_case:
+    stack = o.get_stack()
+    buffer = o.get_buffer()
+    if len(stack) > 1:
+        right, left = o.view_top_two()
+        print(f"!!! {stack}")
+    else:
+        o.shift()
+        o.add_transition(transition=TRANSITIONS['shift'])
+        # o.print_buffer()
+        # o.print_stack()
+        right, left = o.view_top_two()
+        
+        transition = get_transition(right_token=right, left_token=left)
+        o.add_transition(transition)
+        if transition[0] == TRANSITIONS['rightArc']:
+            o.add_to_stack(left)
+        if transition[0] == TRANSITIONS['leftArc']:
+            o.add_to_stack(right)
+
 def create_oracle(parsed_phrase):
     o = Oracle()
     tokens = []
@@ -25,9 +72,12 @@ def create_oracle(parsed_phrase):
         t = Token()
         t.create_token(token.strip())
         tokens.append(t)
-
+    
+    root_token = tokens.pop(0)
+    o.add_to_stack(root_token)
     o.set_buffer(tokens)
-    o.print_buffer()
+    o.add_transition(transition=TRANSITIONS['shift'])
+    create_transitions(o)
 
 def read_dependency_parses(parse_input):
     with open(parse_input, 'r', encoding='utf8') as file:
