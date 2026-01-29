@@ -7,7 +7,6 @@ TRANSITIONS = {
     'shift': "SHIFT",
     'leftArc': "LEFTARC",
     'rightArc': "RIGHTARC"
-
 }
 
 def get_inputs():
@@ -41,15 +40,14 @@ def get_transition(right_token, left_token):
 
 def print_sequence(o, sequence_output):
     transitions = o.get_transitions()
-    stack = o.get_stack()
     with open(sequence_output, "a") as f:
         for transition in transitions:
             print(transition, file=f)
-        print(stack[0].print_token(), file=f)
 
 def create_transitions(o):
     is_terminal_case = o.is_terminal_case()
     if is_terminal_case:
+        o.add_transition((TRANSITIONS['rightArc'], 'ROOT'))
         return 
     while not is_terminal_case:
         stack = o.get_stack()
@@ -69,6 +67,7 @@ def create_transitions(o):
         else:
             is_terminal_case = o.is_terminal_case()
             if is_terminal_case:
+                o.add_transition((TRANSITIONS['rightArc'], 'ROOT'))
                 return
             else:
                 o.shift()
