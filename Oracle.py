@@ -3,12 +3,19 @@ class Oracle:
         self.buffer = []
         self.stack = []
         self.transitions = []
+        self.input_phrase = ''
 
     def set_buffer(self, buffer_input):
         self.buffer = buffer_input
+
+    def set_input_phrase(self, phrase):
+        self.input_phrase = phrase
     
     def get_buffer(self):
         return self.buffer
+    
+    def get_input_phrase(self):
+        return self.input_phrase
     
     def get_stack(self):
         return self.stack

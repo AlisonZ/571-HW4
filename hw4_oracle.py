@@ -71,14 +71,47 @@ def create_transitions(o, sequence_output):
             if is_terminal_case:
                 o.add_transition((TRANSITIONS['rightArc'], 'ROOT'))
                 print_sequence(o, sequence_output)
+                create_dependency_arcs(o)
                 return
             else:
                 o.shift()
                 o.add_transition(transition=TRANSITIONS['shift'])
+
+def create_dependency_arcs(o):
+    phrase = o.get_input_phrase()
+    sequence = o.get_transitions()
+    stack = []  
+    arcs = []
+    for seq in sequence:
+        s = ''
+        if len(seq[0]) == 1:
+            s = seq
+        else:
+            s = seq[0]
+
+        if s == TRANSITIONS['shift']:
+            popped = phrase.pop(0)
+            stack.append(popped)
+            print(f"SHIIIIFFFT {s} {stack} ")
+        elif s == TRANSITIONS['leftArc']:
+            right = stack.pop()
+            left = stack.pop()
+            arcs.append(left)
+            stack.append(right)
+            print(f"LEFTTTT {s}")
+            print(f"STACK {stack}")
+            print(f"LLL: {left} R::: {right}")
+        elif s == TRANSITIONS['rightArc']:
+           right = stack.pop()
+           arcs.append(right)
+           print(f"RIGHHHHT {s}")
+        else:
+            print(f'NONNNNNEEE {s}')
     
 
 def create_oracle(parsed_phrase, sequence_output):
     o = Oracle()
+    o.set_input_phrase(phrase=parsed_phrase)
     tokens = []
     for token in parsed_phrase:
         t = Token()
