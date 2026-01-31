@@ -3,6 +3,7 @@ import sys
 import os
 from Oracle import Oracle
 from Token import Token
+from ArcModel import Arc
 TRANSITIONS = {
     'shift': "SHIFT",
     'leftArc': "LEFTARC",
@@ -45,7 +46,7 @@ def print_sequence(o, sequence_output):
             print(transition, file=f)
         print('', file=f)
 
-def create_transitions(o, sequence_output):
+def create_transitions(o, sequence_output, dependency_output):
     is_terminal_case = o.is_terminal_case()
     if is_terminal_case:
         o.add_transition((TRANSITIONS['rightArc'], 'ROOT'))
@@ -71,45 +72,75 @@ def create_transitions(o, sequence_output):
             if is_terminal_case:
                 o.add_transition((TRANSITIONS['rightArc'], 'ROOT'))
                 print_sequence(o, sequence_output)
-                create_dependency_arcs(o)
+                create_dependency_arcs(o, dependency_output)
                 return
             else:
                 o.shift()
                 o.add_transition(transition=TRANSITIONS['shift'])
 
-def create_dependency_arcs(o):
+def print_dependency_arcs(arcs, dependency_output):
+    for arc in arcs:
+        i = arc.get_index()
+        head = arc.get_head_index()
+        word = arc.get_word()
+        pos = arc.get_dep_relation()
+
+        print(f"HIIII {i} {word} {pos} {head}")
+
+def create_dependency_arcs(o, dependency_output):
     phrase = o.get_input_phrase()
     sequence = o.get_transitions()
     stack = []  
+    root_token = "0\tROOT\tROOT\t0"                                                      
+    stack.append(root_token)                                                                                   
+
     arcs = []
+
     for seq in sequence:
         s = ''
         if len(seq[0]) == 1:
             s = seq
         else:
             s = seq[0]
-
+        
         if s == TRANSITIONS['shift']:
             popped = phrase.pop(0)
             stack.append(popped)
-            print(f"SHIIIIFFFT {s} {stack} ")
         elif s == TRANSITIONS['leftArc']:
             right = stack.pop()
             left = stack.pop()
-            arcs.append(left)
+            left_split  = left.split('\t')
+            right_split = right.split('\t')
+
+            a = Arc()
+            a.set_head_index(right_split[0])
+            a.set_index(left_split[0])
+            a.set_word(left_split[1])
+            a.set_dep_relation(left_split[2])
+
+            arcs.append(a)
             stack.append(right)
-            print(f"LEFTTTT {s}")
-            print(f"STACK {stack}")
-            print(f"LLL: {left} R::: {right}")
+       
         elif s == TRANSITIONS['rightArc']:
            right = stack.pop()
-           arcs.append(right)
-           print(f"RIGHHHHT {s}")
+           left = stack[-1]
+           right_split = right.split('\t')
+           left_split = left.split('\t')
+
+           a = Arc()
+           a.set_head_index(left_split[0])
+           a.set_index(right_split[0])
+           a.set_word(right_split[1])
+           a.set_dep_relation(right_split[2])
+           arcs.append(a)
+
         else:
             print(f'NONNNNNEEE {s}')
-    
 
-def create_oracle(parsed_phrase, sequence_output):
+    print_dependency_arcs(arcs, dependency_output)
+
+
+def create_oracle(parsed_phrase, sequence_output, dependency_output):
     o = Oracle()
     o.set_input_phrase(phrase=parsed_phrase)
     tokens = []
@@ -122,9 +153,9 @@ def create_oracle(parsed_phrase, sequence_output):
     o.add_to_stack(root_token)
     o.set_buffer(tokens)
     o.add_transition(transition=TRANSITIONS['shift'])
-    create_transitions(o, sequence_output)
+    create_transitions(o, sequence_output, dependency_output)
 
-def read_dependency_parses(parse_input, sequence_output):
+def read_dependency_parses(parse_input, sequence_output, dependency_output):
     with open(parse_input, 'r', encoding='utf8') as file:
         lines = file.readlines()
         parsed_phrase = []
@@ -135,12 +166,12 @@ def read_dependency_parses(parse_input, sequence_output):
             else:
                 parsed_phrase.append(line)
         
-        create_oracle(parsed_phrase, sequence_output)
+        create_oracle(parsed_phrase, sequence_output, dependency_output)
       
 
 def main():
     parse_input, dependency_output, sequence_output = get_inputs()
-    read_dependency_parses(parse_input, sequence_output)
+    read_dependency_parses(parse_input, sequence_output, dependency_output)
 
 if __name__ == '__main__':
     main()

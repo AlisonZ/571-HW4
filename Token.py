@@ -14,6 +14,9 @@ class Token:
     def set_word(self, word):
         self.word = word
     
+    def get_word(self):
+        return self.word
+    
     def get_head_index(self):
         return self.head_index
     
