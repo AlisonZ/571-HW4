@@ -24,20 +24,29 @@ def get_inputs():
     
     return parse_input, dependency_output, sequence_output
 
-def get_transition(right_token, left_token):
+def get_transition(right_token, left_token, buffer):
     r_head = right_token.get_head_index()
     r_index = right_token.get_index()
     r_pos = right_token.get_pos()
     l_head = left_token.get_head_index()
     l_index = left_token.get_index()
     l_pos = left_token.get_pos()
-    
+
     if r_head == l_index:
-        return (TRANSITIONS['rightArc'], r_pos)
-    elif l_head == r_index:
-        return (TRANSITIONS['leftArc'], l_pos)
-    else: 
-        return (TRANSITIONS['shift'])
+        has_dependents_in_buffer = any(
+            token.get_head_index() == r_index for token in buffer
+        )
+        if not has_dependents_in_buffer:
+            return (TRANSITIONS['rightArc'], r_pos)
+
+    if l_head == r_index:
+        has_dependents_in_buffer = any(
+            token.get_head_index() == l_index for token in buffer
+        )
+        if not has_dependents_in_buffer:
+            return (TRANSITIONS['leftArc'], l_pos)
+
+    return (TRANSITIONS['shift'])
 
 def print_sequence(o, sequence_output):
     transitions = o.get_transitions()
@@ -56,7 +65,8 @@ def create_transitions(o, sequence_output, dependency_output):
         stack = o.get_stack()
         if len(stack) > 1:
             right, left = o.view_top_two()
-            transition = get_transition(right_token=right, left_token=left)
+            buffer = o.get_buffer()
+            transition = get_transition(right_token=right, left_token=left, buffer=buffer)
 
             if transition[0] == TRANSITIONS['rightArc']:
                 o.add_transition(transition)
@@ -84,6 +94,7 @@ def create_transitions(o, sequence_output, dependency_output):
                 o.shift()
                 o.add_transition(transition=TRANSITIONS['shift'])
 
+    o.add_transition((TRANSITIONS['rightArc'], 'ROOT'))
     print_sequence(o, sequence_output)
     create_dependency_arcs(o, dependency_output)
 
@@ -139,6 +150,8 @@ def create_dependency_arcs(o, dependency_output):
            right_split = right.split('\t')
            left_split = left.split('\t')
 
+           print(f"DEBUG RIGHTARC: right={right}, left={left}")
+
            a = Arc()
            a.set_head_index(left_split[0])
            a.set_index(right_split[0])
@@ -146,6 +159,9 @@ def create_dependency_arcs(o, dependency_output):
            a.set_dep_relation(right_split[2])
            arcs.append(a)
 
+           print(f"DEBUG ARC CREATED: index={right_split[0]}, word={right_split[1]}, dep={right_split[2]}, head={left_split[0]}")
+
+    print(f"DEBUG: Total arcs created = {len(arcs)}")
     print_dependency_arcs(arcs, dependency_output)
 
 def create_oracle(parsed_phrase, sequence_output, dependency_output):
