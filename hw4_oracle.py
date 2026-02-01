@@ -79,13 +79,16 @@ def create_transitions(o, sequence_output, dependency_output):
                 o.add_transition(transition=TRANSITIONS['shift'])
 
 def print_dependency_arcs(arcs, dependency_output):
-    for arc in arcs:
-        i = arc.get_index()
-        head = arc.get_head_index()
-        word = arc.get_word()
-        pos = arc.get_dep_relation()
+    sorted_arcs = sorted(arcs, key=lambda arc: int(arc.get_index()))
+    with open(dependency_output, "a") as output_file:
+        for arc in sorted_arcs:
+            i = arc.get_index()
+            head = arc.get_head_index()
+            word = arc.get_word()
+            pos = arc.get_dep_relation()
 
-        print(f"HIIII {i} {word} {pos} {head}")
+            print(f"{i} {word} {pos} {head}", file=output_file)
+        print('\n', file=output_file)
 
 def create_dependency_arcs(o, dependency_output):
     phrase = o.get_input_phrase()
@@ -139,7 +142,6 @@ def create_dependency_arcs(o, dependency_output):
 
     print_dependency_arcs(arcs, dependency_output)
 
-
 def create_oracle(parsed_phrase, sequence_output, dependency_output):
     o = Oracle()
     o.set_input_phrase(phrase=parsed_phrase)
@@ -161,7 +163,7 @@ def read_dependency_parses(parse_input, sequence_output, dependency_output):
         parsed_phrase = []
         for line in lines:
             if line == "\n":
-                create_oracle(parsed_phrase, sequence_output)
+                create_oracle(parsed_phrase, sequence_output, dependency_output)
                 parsed_phrase = []
             else:
                 parsed_phrase.append(line)
