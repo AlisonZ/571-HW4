@@ -55,18 +55,24 @@ def create_transitions(o, sequence_output, dependency_output):
     while not is_terminal_case:
         stack = o.get_stack()
         if len(stack) > 1:
-            right, left = o.view_top_two()            
+            right, left = o.view_top_two()
             transition = get_transition(right_token=right, left_token=left)
-            o.add_transition(transition)
 
             if transition[0] == TRANSITIONS['rightArc']:
+                o.add_transition(transition)
                 o.add_to_stack(left)
             if transition[0] == TRANSITIONS['leftArc']:
+                o.add_transition(transition)
                 o.add_to_stack(right)
             if transition == TRANSITIONS['shift']:
-                o.add_to_stack(left)
-                o.add_to_stack(right)
-                o.shift()
+                if len(o.get_buffer()) > 0:
+                    o.add_to_stack(left)
+                    o.add_to_stack(right)
+                    o.add_transition(transition)
+                    o.shift()
+                else:
+                    break
+            is_terminal_case = o.is_terminal_case()
         else:
             is_terminal_case = o.is_terminal_case()
             if is_terminal_case:
@@ -77,6 +83,9 @@ def create_transitions(o, sequence_output, dependency_output):
             else:
                 o.shift()
                 o.add_transition(transition=TRANSITIONS['shift'])
+
+    print_sequence(o, sequence_output)
+    create_dependency_arcs(o, dependency_output)
 
 def print_dependency_arcs(arcs, dependency_output):
     sorted_arcs = sorted(arcs, key=lambda arc: int(arc.get_index()))
@@ -137,19 +146,20 @@ def create_dependency_arcs(o, dependency_output):
            a.set_dep_relation(right_split[2])
            arcs.append(a)
 
-        else:
-            print(f'NONNNNNEEE {s}')
-
     print_dependency_arcs(arcs, dependency_output)
 
 def create_oracle(parsed_phrase, sequence_output, dependency_output):
     o = Oracle()
     o.set_input_phrase(phrase=parsed_phrase)
     tokens = []
+   
     for token in parsed_phrase:
         t = Token()
         t.create_token(token.strip())
         tokens.append(t)
+    
+    if not tokens:
+        return
     
     root_token = tokens.pop(0)
     o.add_to_stack(root_token)
@@ -163,7 +173,8 @@ def read_dependency_parses(parse_input, sequence_output, dependency_output):
         parsed_phrase = []
         for line in lines:
             if line == "\n":
-                create_oracle(parsed_phrase, sequence_output, dependency_output)
+                if parsed_phrase:
+                    create_oracle(parsed_phrase, sequence_output, dependency_output)
                 parsed_phrase = []
             else:
                 parsed_phrase.append(line)
